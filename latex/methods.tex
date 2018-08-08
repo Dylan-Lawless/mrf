@@ -1,0 +1,64 @@
+\documentclass{article}
+\usepackage{courier} 
+\usepackage{textcomp} % for symbols like tilde and backslash
+\newcommand{\textapprox}{\raisebox{0.5ex}{\texttildelow}}
+\setlength\parindent{0pt}
+
+\begin{document}
+To begin I downloaded a single chromosome worth of genomes from GnomAD v.r2.0.2.
+To shorten the data I used a filter on location script using vcfHacks to get only immune-related genes from chr21 (since this was the smallest vcf to download).
+
+
+\medskip \texttt{\$ perl \texttildelow/vcfhacks/filterVcfOnLocation.pl \textbackslash \\
+-i \texttildelow/gnomad/gnomad.genomes.r2.0.2.sites.chr21.vcf.gz \textbackslash \\
+-o \texttildelow/gnomad/Immune.gnomad.chr21.vcf.gz \textbackslash \\
+-b Immune\_list\_bed.txt
+\medskip}
+
+I then shortened the coloumn to only the first ten or so since we only need a fraction of the information such as allele count and frequency, but not most of the other data.
+
+\medskip \texttt{used vim to remove headers: v130Gd esc :wq \\
+\$ awk -F";InbreedingCoeff" 'NF\{print \$1\}' in.tsv -> out.tsv \\
+\$ less out.tsv | head -2 \\
+}
+
+\medskip \texttt{==>\\
+CHROM   POS ID  REF ALT QUAL    FILTER  INFO\\
+21  34621214    .   C   G   569.40  PASS    AC=2;AF=6.45536e-05;AN=30982;\\
+BaseQRankSum=1.19000e+00;ClippingRankSum=2.58000e+00;DP=666446;\\FS=1.50180e+01\\
+\medskip}
+
+In the first instance the file is tsv. I prefer to work with csv as a base. 
+To convert tabs to comma is not the most eliquent process on MacOS (that I have found yet).
+The command is simple but has to be envoked manually. 
+The tab character (after ``s/'' in the following command) must be removed and printed to the command line using ``ctrl+v'' then ``tab''.
+
+\medskip \texttt{\$ sed 's/ /,/g' input.tsv > output.csv}
+\medskip
+
+The IFNO section aslo contains some of the inforation that we will need to use as individual columns. 
+However, they are separated by semi colons. 
+To make comma separated we use the same sed replace method. 
+Both of these steps can be piped together for the whole genome implimentation. 
+
+\medskip \texttt{\$ sed 's/;/,/g' output.csv > finalOutput.csv}
+\medskip
+
+We want to give each observable a unique header. This can be done using R.
+In R we will load the data.
+
+%\medskip \texttt{\$ install.packages("tidyverse")\\
+%\$ library(readr)\\
+%\$ read\_tsv("\texttildelow/gnomad/immune.short.tsv")\\
+%}
+
+\medskip \texttt{\$ 
+immune <- read.csv("~/gnomad/immune.csv", header=FALSE)\\
+\$ colnames(immune) <- c(\\
+"CHRO","POS","ID", "REF", "ALT", "QUAL", "FILT",\\
+"AC", "AF", "AN", "BaseQRankSum", "ClippingRankSum", "DP", "FS"\\
+}
+
+
+
+\end{document}
